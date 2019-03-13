@@ -1,5 +1,5 @@
 # use same ubuntu version as java container
-FROM yep1/usergrid-java
+FROM usergrid-java
 
 RUN \
   apt-get update && \
@@ -11,9 +11,15 @@ RUN \
   \
   echo "++ build usergrid portal" && \
   apt-get install -y npm git-core nodejs-legacy phantomjs && \
-  git clone --single-branch --branch master --depth 1 \
-      https://github.com/apache/usergrid.git /root/usergrid && \
-  cd /root/usergrid/portal && \
+  npm install -g n && \
+  n stable && \
+  git clone https://github.com/apache/usergrid.git /root/usergrid 
+
+#RUN \
+#  cd /root/usergrid && \
+#  git checkout tags/portal-2.0.16 
+ 
+RUN  cd /root/usergrid/portal && \
   npm install -g grunt-cli && \
   ./build.sh && \
   mv /root/usergrid/portal/dist/usergrid-portal/* /var/www/html && \
@@ -31,4 +37,6 @@ EXPOSE 80
 VOLUME ["/etc/nginx/sites-enabled", "/etc/nginx/conf.d", "/var/log/nginx"]
 
 COPY run.sh /root/run.sh
+RUN chmod 777 /root/run.sh
+RUN sed -i -e 's/\r$//' /root/run.sh
 CMD /root/run.sh
